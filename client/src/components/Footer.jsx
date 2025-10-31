@@ -24,7 +24,7 @@ const Footer = () => {
 
   const impactStats = [
     { icon: <Users className="w-4 h-4" />, text: '1,247 Children Helped' },
-    { icon: <Shield className="w-4 h-4" />, text: '15 Years of Service' },
+    { icon: <Shield className="w-4 h-4" />, text: '1 Year of Service' },
     { icon: <Gift className="w-4 h-4" />, text: '89 Active Volunteers' },
     { icon: <Heart className="w-4 h-4" />, text: '23 Communities Served' }
   ];

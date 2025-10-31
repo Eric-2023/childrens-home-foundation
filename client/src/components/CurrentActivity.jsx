@@ -1,15 +1,249 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from 'react-dom';
 import { Heart, Users, Home, Gift, Clock, ArrowRight, Play, ChevronLeft, ChevronRight, Star, Calendar, Shield, Menu, X, MapPin, Phone, Mail, ExternalLink } from "lucide-react";
 
-const CurrentActivity = () => {
-  const [currentSection, setCurrentSection] = useState('current-activity');
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+// Separate Carousel Component to maintain its own state
+const CarouselContent = ({ 
+  photos, 
+  sectionData, 
+  isInModal = false,
+  initialPhotoIndex = 0 
+}) => {
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(initialPhotoIndex);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-  const [mobileModalOpen, setMobileModalOpen] = useState(false);
   const autoPlayRef = useRef(null);
-  const modalRef = useRef(null);
+
+  const IconComponent = sectionData.icon;
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (isAutoPlaying) {
+      autoPlayRef.current = setInterval(() => {
+        setCurrentPhotoIndex((prev) => (prev + 1) % photos.length);
+      }, 4000);
+    } else {
+      clearInterval(autoPlayRef.current);
+    }
+
+    return () => clearInterval(autoPlayRef.current);
+  }, [isAutoPlaying, photos.length]);
+
+  const nextPhoto = () => {
+    setCurrentPhotoIndex((prev) => (prev + 1) % photos.length);
+    resetAutoPlay();
+  };
+
+  const prevPhoto = () => {
+    setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
+    resetAutoPlay();
+  };
+
+  const resetAutoPlay = () => {
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 10000);
+  };
+
+  // Touch handlers for mobile swipe
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextPhoto();
+    } else if (isRightSwipe) {
+      prevPhoto();
+    }
+
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
+  const goToPhoto = (index) => {
+    setCurrentPhotoIndex(index);
+    resetAutoPlay();
+  };
+
+  return (
+    <div className={`bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 shadow-xl overflow-hidden ${isInModal ? 'border-0 shadow-none' : ''}`}>
+      {/* Carousel Header - Only show in modal */}
+      {isInModal && (
+        <div className="p-6 border-b border-blue-200/50 bg-gradient-to-r from-blue-50 to-purple-50">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <IconComponent className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-blue-900">{sectionData.title}</h2>
+              <p className="text-blue-600/80 text-sm">{sectionData.description}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auto-play toggle - Only show when not in modal */}
+      {!isInModal && (
+        <div className="p-6 border-b border-blue-200/50 bg-gradient-to-r from-blue-50 to-purple-50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <IconComponent className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-blue-900">{sectionData.title}</h2>
+                <p className="text-blue-600/80">{sectionData.description}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+              className="w-10 h-10 bg-white rounded-lg border border-blue-200 flex items-center justify-center hover:bg-blue-50 transition-colors"
+            >
+              {isAutoPlaying ? (
+                <Clock className="w-4 h-4 text-blue-600" />
+              ) : (
+                <Play className="w-4 h-4 text-blue-600" />
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Main Carousel */}
+      <div className="relative">
+        <div 
+          className="relative aspect-video bg-gray-100 overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Main Image */}
+          <img
+            src={photos[currentPhotoIndex]}
+            alt={`${sectionData.title} - Image ${currentPhotoIndex + 1}`}
+            className="w-full h-full object-cover transition-transform duration-500"
+          />
+
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10"></div>
+
+          {/* Navigation Arrows */}
+          <button
+            onClick={prevPhoto}
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 hover:scale-110 group"
+          >
+            <ChevronLeft className="w-6 h-6 text-blue-700 group-hover:text-blue-900" />
+          </button>
+          <button
+            onClick={nextPhoto}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 hover:scale-110 group"
+          >
+            <ChevronRight className="w-6 h-6 text-blue-700 group-hover:text-blue-900" />
+          </button>
+
+          {/* Image Counter */}
+          <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
+            {currentPhotoIndex + 1} / {photos.length}
+          </div>
+
+          {/* Thumbnail Strip */}
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="flex gap-2 justify-center">
+              {photos.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToPhoto(index)}
+                  className={`flex-1 max-w-16 h-2 rounded-full transition-all duration-300 ${
+                    index === currentPhotoIndex 
+                      ? 'bg-white' 
+                      : 'bg-white/50 hover:bg-white/70'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Thumbnail Gallery */}
+        <div className="p-4 bg-blue-50/30 border-t border-blue-200/50">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {photos.map((photo, index) => (
+              <button
+                key={index}
+                onClick={() => goToPhoto(index)}
+                className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+                  index === currentPhotoIndex
+                    ? 'border-blue-500 shadow-lg scale-110'
+                    : 'border-blue-200 hover:border-blue-300 hover:scale-105'
+                }`}
+              >
+                <img
+                  src={photo}
+                  alt={`Thumbnail ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Info */}
+      <div className="p-6">
+        <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <div className="text-center p-4 bg-white rounded-xl border border-blue-200">
+            <MapPin className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+            <h4 className="font-bold text-blue-900">Location</h4>
+            <p className="text-blue-600 text-sm">Nairobi, Kenya</p>
+          </div>
+          <div className="text-center p-4 bg-white rounded-xl border border-blue-200">
+            <Phone className="w-8 h-8 text-green-500 mx-auto mb-2" />
+            <h4 className="font-bold text-blue-900">Contact</h4>
+            <p className="text-blue-600 text-sm">+254 720 846 532</p>
+          </div>
+          <div className="text-center p-4 bg-white rounded-xl border border-blue-200">
+            <Mail className="w-8 h-8 text-purple-500 mx-auto mb-2" />
+            <h4 className="font-bold text-blue-900">Email</h4>
+            <p className="text-blue-600 text-sm">info@faab.org</p>
+          </div>
+        </div>
+
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <Heart className="w-5 h-5 text-yellow-600 fill-current" />
+            <div>
+              <h4 className="font-bold text-yellow-800">How You Can Help</h4>
+              <p className="text-yellow-700 text-sm">
+                Your support makes these moments possible. Consider donating or volunteering today.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CurrentActivity = () => {
+  const [currentSection, setCurrentSection] = useState('current-activity');
+  const [mobileModalOpen, setMobileModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Initialize mounted state
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Photos from public folder
   const currentActivityPhotos = [
@@ -84,82 +318,6 @@ const CurrentActivity = () => {
     }
   };
 
-  // Auto-play functionality
-  useEffect(() => {
-    if (isAutoPlaying) {
-      autoPlayRef.current = setInterval(() => {
-        setCurrentPhotoIndex((prev) => (prev + 1) % currentPhotos.length);
-      }, 4000);
-    } else {
-      clearInterval(autoPlayRef.current);
-    }
-
-    return () => clearInterval(autoPlayRef.current);
-  }, [isAutoPlaying, currentPhotos.length]);
-
-  // Reset photo index when section changes
-  useEffect(() => {
-    setCurrentPhotoIndex(0);
-  }, [currentSection]);
-
-  // Close modal on escape key
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && mobileModalOpen) {
-        closeMobileModal();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [mobileModalOpen]);
-
-  const nextPhoto = () => {
-    setCurrentPhotoIndex((prev) => (prev + 1) % currentPhotos.length);
-    resetAutoPlay();
-  };
-
-  const prevPhoto = () => {
-    setCurrentPhotoIndex((prev) => (prev - 1 + currentPhotos.length) % currentPhotos.length);
-    resetAutoPlay();
-  };
-
-  const resetAutoPlay = () => {
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
-  };
-
-  // Touch handlers for mobile swipe
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      nextPhoto();
-    } else if (isRightSwipe) {
-      prevPhoto();
-    }
-
-    setTouchStart(null);
-    setTouchEnd(null);
-  };
-
-  const goToPhoto = (index) => {
-    setCurrentPhotoIndex(index);
-    resetAutoPlay();
-  };
-
   // Mobile section handler
   const handleMobileSectionClick = (sectionKey) => {
     setCurrentSection(sectionKey);
@@ -182,139 +340,76 @@ const CurrentActivity = () => {
   };
 
   const currentSectionData = sectionData[currentSection];
-  const IconComponent = currentSectionData.icon;
 
-  // Carousel Component to avoid duplication
-  const CarouselContent = ({ isInModal = false }) => (
-    <div className={`bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 shadow-xl overflow-hidden ${isInModal ? 'border-0 shadow-none' : ''}`}>
-      {/* Carousel Header - Only show in modal */}
-      {isInModal && (
-        <div className="p-6 border-b border-blue-200/50 bg-gradient-to-r from-blue-50 to-purple-50">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <IconComponent className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-blue-900">{currentSectionData.title}</h2>
-              <p className="text-blue-600/80 text-sm">{currentSectionData.description}</p>
-            </div>
-          </div>
-        </div>
-      )}
+  // Mobile Modal Component using Portal
+  const MobileModal = () => {
+    if (!mounted || !mobileModalOpen) return null;
 
-      {/* Main Carousel */}
-      <div className="relative">
-        <div 
-          className="relative aspect-video bg-gray-100 overflow-hidden"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          {/* Main Image */}
-          <img
-            src={currentPhotos[currentPhotoIndex]}
-            alt={`${currentSectionData.title} - Image ${currentPhotoIndex + 1}`}
-            className="w-full h-full object-cover transition-transform duration-500"
-          />
-
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10"></div>
-
-          {/* Navigation Arrows */}
+    return createPortal(
+      <div 
+        className="lg:hidden fixed inset-0 z-[9999] flex items-start justify-center p-0 bg-black/50 backdrop-blur-sm overflow-y-auto"
+        onClick={handleBackdropClick}
+      >
+        <div className="bg-white w-full min-h-full relative">
+          {/* Close Button */}
           <button
-            onClick={prevPhoto}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 hover:scale-110 group"
+            onClick={closeMobileModal}
+            className="fixed top-4 right-4 z-[10000] w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 border border-blue-200"
           >
-            <ChevronLeft className="w-6 h-6 text-blue-700 group-hover:text-blue-900" />
-          </button>
-          <button
-            onClick={nextPhoto}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 hover:scale-110 group"
-          >
-            <ChevronRight className="w-6 h-6 text-blue-700 group-hover:text-blue-900" />
+            <X className="w-6 h-6 text-blue-700" />
           </button>
 
-          {/* Image Counter */}
-          <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
-            {currentPhotoIndex + 1} / {currentPhotos.length}
-          </div>
-
-          {/* Thumbnail Strip */}
-          <div className="absolute bottom-4 left-4 right-4">
-            <div className="flex gap-2 justify-center">
-              {currentPhotos.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToPhoto(index)}
-                  className={`flex-1 max-w-16 h-2 rounded-full transition-all duration-300 ${
-                    index === currentPhotoIndex 
-                      ? 'bg-white' 
-                      : 'bg-white/50 hover:bg-white/70'
-                  }`}
-                />
-              ))}
+          {/* Modal Content */}
+          <div className="pt-16 pb-8">
+            {/* Stats Section */}
+            <div className="p-6 border-b border-blue-200/50 bg-gradient-to-r from-blue-50 to-purple-50">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <currentSectionData.icon className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-blue-900">{currentSectionData.title}</h2>
+                  <p className="text-blue-600/80">{currentSectionData.description}</p>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl p-4 border border-blue-200">
+                <h4 className="font-bold text-blue-900 mb-3 text-lg">Quick Stats</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  {currentSectionData.stats.map((stat, index) => (
+                    <div key={index} className="text-center bg-blue-50 rounded-lg p-3">
+                      <div className="text-lg font-bold text-blue-900">{stat.value}</div>
+                      <div className="text-blue-700 text-xs">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Thumbnail Gallery */}
-        <div className="p-4 bg-blue-50/30 border-t border-blue-200/50">
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {currentPhotos.map((photo, index) => (
-              <button
-                key={index}
-                onClick={() => goToPhoto(index)}
-                className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
-                  index === currentPhotoIndex
-                    ? 'border-blue-500 shadow-lg scale-110'
-                    : 'border-blue-200 hover:border-blue-300 hover:scale-105'
-                }`}
-              >
-                <img
-                  src={photo}
-                  alt={`Thumbnail ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
+            {/* Carousel Content */}
+            <div className="p-4">
+              <CarouselContent 
+                photos={currentPhotos}
+                sectionData={currentSectionData}
+                isInModal={true}
+                initialPhotoIndex={0}
+              />
+            </div>
+
+            {/* CTA Button */}
+            <div className="p-6 border-t border-blue-200/50 bg-blue-50/30">
+              <button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-blue-500/25 transition-all duration-300 flex items-center justify-center gap-2 text-lg active:scale-95">
+                <Heart className="w-5 h-5" />
+                <span>Get Involved</span>
+                <ExternalLink className="w-5 h-5" />
               </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Additional Info */}
-      <div className="p-6">
-        <div className="grid md:grid-cols-3 gap-4 mb-6">
-          <div className="text-center p-4 bg-white rounded-xl border border-blue-200">
-            <MapPin className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-            <h4 className="font-bold text-blue-900">Location</h4>
-            <p className="text-blue-600 text-sm">Nairobi, Kenya</p>
-          </div>
-          <div className="text-center p-4 bg-white rounded-xl border border-blue-200">
-            <Phone className="w-8 h-8 text-green-500 mx-auto mb-2" />
-            <h4 className="font-bold text-blue-900">Contact</h4>
-            <p className="text-blue-600 text-sm">+254 720 846 532</p>
-          </div>
-          <div className="text-center p-4 bg-white rounded-xl border border-blue-200">
-            <Mail className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-            <h4 className="font-bold text-blue-900">Email</h4>
-            <p className="text-blue-600 text-sm">info@faab.org</p>
-          </div>
-        </div>
-
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <Heart className="w-5 h-5 text-yellow-600 fill-current" />
-            <div>
-              <h4 className="font-bold text-yellow-800">How You Can Help</h4>
-              <p className="text-yellow-700 text-sm">
-                Your support makes these moments possible. Consider donating or volunteering today.
-              </p>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
+      </div>,
+      document.body
+    );
+  };
 
   return (
     <section className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen py-12">
@@ -431,71 +526,17 @@ const CurrentActivity = () => {
 
           {/* Carousel Panel */}
           <div className="lg:col-span-2">
-            <CarouselContent />
+            <CarouselContent 
+              photos={currentPhotos}
+              sectionData={currentSectionData}
+              isInModal={false}
+            />
           </div>
         </div>
-
-        {/* Mobile Modal - Fixed positioning and proper z-index */}
-        {mobileModalOpen && (
-          <div 
-            ref={modalRef}
-            className="lg:hidden fixed inset-0 z-[100] flex items-start justify-center p-0 bg-black/50 backdrop-blur-sm overflow-y-auto"
-            onClick={handleBackdropClick}
-          >
-            <div className="bg-white w-full min-h-full relative">
-              {/* Close Button - Fixed position */}
-              <button
-                onClick={closeMobileModal}
-                className="fixed top-4 right-4 z-[101] w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 border border-blue-200"
-              >
-                <X className="w-6 h-6 text-blue-700" />
-              </button>
-
-              {/* Modal Content */}
-              <div className="pt-16 pb-8">
-                {/* Stats Section */}
-                <div className="p-6 border-b border-blue-200/50 bg-gradient-to-r from-blue-50 to-purple-50">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                      <IconComponent className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-blue-900">{currentSectionData.title}</h2>
-                      <p className="text-blue-600/80">{currentSectionData.description}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-xl p-4 border border-blue-200">
-                    <h4 className="font-bold text-blue-900 mb-3 text-lg">Quick Stats</h4>
-                    <div className="grid grid-cols-3 gap-3">
-                      {currentSectionData.stats.map((stat, index) => (
-                        <div key={index} className="text-center bg-blue-50 rounded-lg p-3">
-                          <div className="text-lg font-bold text-blue-900">{stat.value}</div>
-                          <div className="text-blue-700 text-xs">{stat.label}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Carousel Content */}
-                <div className="p-4">
-                  <CarouselContent isInModal={true} />
-                </div>
-
-                {/* CTA Button */}
-                <div className="p-6 border-t border-blue-200/50 bg-blue-50/30">
-                  <button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-blue-500/25 transition-all duration-300 flex items-center justify-center gap-2 text-lg active:scale-95">
-                    <Heart className="w-5 h-5" />
-                    <span>Get Involved</span>
-                    <ExternalLink className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Render Mobile Modal as Portal */}
+      <MobileModal />
 
       {/* Custom Styles */}
       <style jsx>{`
