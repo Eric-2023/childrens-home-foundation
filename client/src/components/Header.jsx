@@ -45,7 +45,7 @@ const Header = ({ donationCount, onDonationUpdate }) => {
       ];
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-blue-100">
+    <header className="bg-white shadow-sm sticky top-0 z-40 border-b border-blue-100">
       {/* Top Bar - Foundation Info */}
       <div className="bg-blue-50 border-b border-blue-200">
         <div className="container mx-auto px-4 py-2">

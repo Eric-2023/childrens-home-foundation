@@ -439,14 +439,14 @@ const CurrentActivity = () => {
         {mobileModalOpen && (
           <div 
             ref={modalRef}
-            className="lg:hidden fixed inset-0 z-9999 flex items-start justify-center p-0 bg-black/50 backdrop-blur-sm overflow-y-auto"
+            className="lg:hidden fixed inset-0 z-[100] flex items-start justify-center p-0 bg-black/50 backdrop-blur-sm overflow-y-auto"
             onClick={handleBackdropClick}
           >
             <div className="bg-white w-full min-h-full relative">
               {/* Close Button - Fixed position */}
               <button
                 onClick={closeMobileModal}
-                className="fixed top-4 right-4 z-10000 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 border border-blue-200"
+                className="fixed top-4 right-4 z-[101] w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 border border-blue-200"
               >
                 <X className="w-6 h-6 text-blue-700" />
               </button>
