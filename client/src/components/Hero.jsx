@@ -142,7 +142,7 @@ const ChildrensHomeHero = () => {
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 FAAB
               </span>
-              <span className="block text-blue-900 mt-2">Charity</span>
+              <span className="block text-blue-900 mt-2">Charity Organisation</span>
             </h1>
 
             {/* Description with expandable on mobile */}
