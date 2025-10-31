@@ -9,6 +9,7 @@ const CurrentActivity = () => {
   const [touchEnd, setTouchEnd] = useState(null);
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
   const autoPlayRef = useRef(null);
+  const modalRef = useRef(null);
 
   // Photos from public folder
   const currentActivityPhotos = [
@@ -101,6 +102,18 @@ const CurrentActivity = () => {
     setCurrentPhotoIndex(0);
   }, [currentSection]);
 
+  // Close modal on escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && mobileModalOpen) {
+        closeMobileModal();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [mobileModalOpen]);
+
   const nextPhoto = () => {
     setCurrentPhotoIndex((prev) => (prev + 1) % currentPhotos.length);
     resetAutoPlay();
@@ -151,42 +164,43 @@ const CurrentActivity = () => {
   const handleMobileSectionClick = (sectionKey) => {
     setCurrentSection(sectionKey);
     setMobileModalOpen(true);
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
   };
 
   const closeMobileModal = () => {
     setMobileModalOpen(false);
+    // Re-enable body scroll
+    document.body.style.overflow = 'unset';
+  };
+
+  // Close modal when clicking on backdrop
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      closeMobileModal();
+    }
   };
 
   const currentSectionData = sectionData[currentSection];
   const IconComponent = currentSectionData.icon;
 
   // Carousel Component to avoid duplication
-  const CarouselContent = () => (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 shadow-xl overflow-hidden">
-      {/* Carousel Header */}
-      <div className="p-6 border-b border-blue-200/50 bg-gradient-to-r from-blue-50 to-purple-50">
-        <div className="flex items-center justify-between">
+  const CarouselContent = ({ isInModal = false }) => (
+    <div className={`bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 shadow-xl overflow-hidden ${isInModal ? 'border-0 shadow-none' : ''}`}>
+      {/* Carousel Header - Only show in modal */}
+      {isInModal && (
+        <div className="p-6 border-b border-blue-200/50 bg-gradient-to-r from-blue-50 to-purple-50">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
               <IconComponent className="w-6 h-6 text-blue-600" />
             </div>
-            <div>
+            <div className="flex-1">
               <h2 className="text-2xl font-bold text-blue-900">{currentSectionData.title}</h2>
-              <p className="text-blue-600/80">{currentSectionData.description}</p>
+              <p className="text-blue-600/80 text-sm">{currentSectionData.description}</p>
             </div>
           </div>
-          <button
-            onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-            className="w-10 h-10 bg-white rounded-lg border border-blue-200 flex items-center justify-center hover:bg-blue-50 transition-colors"
-          >
-            {isAutoPlaying ? (
-              <Clock className="w-4 h-4 text-blue-600" />
-            ) : (
-              <Play className="w-4 h-4 text-blue-600" />
-            )}
-          </button>
         </div>
-      </div>
+      )}
 
       {/* Main Carousel */}
       <div className="relative">
@@ -332,7 +346,7 @@ const CurrentActivity = () => {
                   <button
                     key={key}
                     onClick={() => handleMobileSectionClick(key)}
-                    className="w-full text-left p-4 rounded-xl transition-all duration-300 bg-white/50 text-blue-800 hover:bg-blue-50 hover:shadow-md border border-blue-200/50"
+                    className="w-full text-left p-4 rounded-xl transition-all duration-300 bg-white/50 text-blue-800 hover:bg-blue-50 hover:shadow-md border border-blue-200/50 active:scale-95"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-blue-100">
@@ -421,56 +435,62 @@ const CurrentActivity = () => {
           </div>
         </div>
 
-        {/* Mobile Modal */}
+        {/* Mobile Modal - Fixed positioning and proper z-index */}
         {mobileModalOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-h-[90vh] overflow-y-auto relative">
-              {/* Close Button */}
+          <div 
+            ref={modalRef}
+            className="lg:hidden fixed inset-0 z-[100] flex items-start justify-center p-0 bg-black/50 backdrop-blur-sm overflow-y-auto"
+            onClick={handleBackdropClick}
+          >
+            <div className="bg-white w-full min-h-full relative">
+              {/* Close Button - Fixed position */}
               <button
                 onClick={closeMobileModal}
-                className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300"
+                className="fixed top-4 right-4 z-[110] w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 border border-blue-200"
               >
-                <X className="w-5 h-5 text-blue-700" />
+                <X className="w-6 h-6 text-blue-700" />
               </button>
 
-              {/* Modal Header */}
-              <div className="p-6 border-b border-blue-200/50 bg-gradient-to-r from-blue-50 to-purple-50 sticky top-0">
-                <div className="flex items-center gap-4 pr-10">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <IconComponent className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-blue-900">{currentSectionData.title}</h2>
-                    <p className="text-blue-600/80">{currentSectionData.description}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats Section */}
-              <div className="p-6 border-b border-blue-200/50">
-                <h4 className="font-bold text-blue-900 mb-3 text-lg">Quick Stats</h4>
-                <div className="grid grid-cols-3 gap-3">
-                  {currentSectionData.stats.map((stat, index) => (
-                    <div key={index} className="text-center bg-blue-50 rounded-xl p-3">
-                      <div className="text-lg font-bold text-blue-900">{stat.value}</div>
-                      <div className="text-blue-700 text-xs">{stat.label}</div>
+              {/* Modal Content */}
+              <div className="pt-16 pb-8">
+                {/* Stats Section */}
+                <div className="p-6 border-b border-blue-200/50 bg-gradient-to-r from-blue-50 to-purple-50">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <IconComponent className="w-6 h-6 text-blue-600" />
                     </div>
-                  ))}
+                    <div>
+                      <h2 className="text-2xl font-bold text-blue-900">{currentSectionData.title}</h2>
+                      <p className="text-blue-600/80">{currentSectionData.description}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-xl p-4 border border-blue-200">
+                    <h4 className="font-bold text-blue-900 mb-3 text-lg">Quick Stats</h4>
+                    <div className="grid grid-cols-3 gap-3">
+                      {currentSectionData.stats.map((stat, index) => (
+                        <div key={index} className="text-center bg-blue-50 rounded-lg p-3">
+                          <div className="text-lg font-bold text-blue-900">{stat.value}</div>
+                          <div className="text-blue-700 text-xs">{stat.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Carousel Content */}
-              <div className="p-4">
-                <CarouselContent />
-              </div>
+                {/* Carousel Content */}
+                <div className="p-4">
+                  <CarouselContent isInModal={true} />
+                </div>
 
-              {/* CTA Button */}
-              <div className="p-6 border-t border-blue-200/50 bg-blue-50/30">
-                <button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-blue-500/25 transition-all duration-300 flex items-center justify-center gap-2 text-lg">
-                  <Heart className="w-5 h-5" />
-                  <span>Get Involved</span>
-                  <ExternalLink className="w-5 h-5" />
-                </button>
+                {/* CTA Button */}
+                <div className="p-6 border-t border-blue-200/50 bg-blue-50/30">
+                  <button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-blue-500/25 transition-all duration-300 flex items-center justify-center gap-2 text-lg active:scale-95">
+                    <Heart className="w-5 h-5" />
+                    <span>Get Involved</span>
+                    <ExternalLink className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
