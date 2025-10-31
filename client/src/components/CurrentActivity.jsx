@@ -7,9 +7,10 @@ const CurrentActivity = () => {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const [mobileModalOpen, setMobileModalOpen] = useState(false);
   const autoPlayRef = useRef(null);
 
-  // Photos from public folder - replace with your actual image names
+  // Photos from public folder
   const currentActivityPhotos = [
     "/getmorehome/photo1.jpeg",
     "/getmorehome/photo2.jpeg",
@@ -146,8 +147,160 @@ const CurrentActivity = () => {
     resetAutoPlay();
   };
 
+  // Mobile section handler
+  const handleMobileSectionClick = (sectionKey) => {
+    setCurrentSection(sectionKey);
+    setMobileModalOpen(true);
+  };
+
+  const closeMobileModal = () => {
+    setMobileModalOpen(false);
+  };
+
   const currentSectionData = sectionData[currentSection];
   const IconComponent = currentSectionData.icon;
+
+  // Carousel Component to avoid duplication
+  const CarouselContent = () => (
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 shadow-xl overflow-hidden">
+      {/* Carousel Header */}
+      <div className="p-6 border-b border-blue-200/50 bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <IconComponent className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-blue-900">{currentSectionData.title}</h2>
+              <p className="text-blue-600/80">{currentSectionData.description}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+            className="w-10 h-10 bg-white rounded-lg border border-blue-200 flex items-center justify-center hover:bg-blue-50 transition-colors"
+          >
+            {isAutoPlaying ? (
+              <Clock className="w-4 h-4 text-blue-600" />
+            ) : (
+              <Play className="w-4 h-4 text-blue-600" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Main Carousel */}
+      <div className="relative">
+        <div 
+          className="relative aspect-video bg-gray-100 overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Main Image */}
+          <img
+            src={currentPhotos[currentPhotoIndex]}
+            alt={`${currentSectionData.title} - Image ${currentPhotoIndex + 1}`}
+            className="w-full h-full object-cover transition-transform duration-500"
+          />
+
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10"></div>
+
+          {/* Navigation Arrows */}
+          <button
+            onClick={prevPhoto}
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 hover:scale-110 group"
+          >
+            <ChevronLeft className="w-6 h-6 text-blue-700 group-hover:text-blue-900" />
+          </button>
+          <button
+            onClick={nextPhoto}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 hover:scale-110 group"
+          >
+            <ChevronRight className="w-6 h-6 text-blue-700 group-hover:text-blue-900" />
+          </button>
+
+          {/* Image Counter */}
+          <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
+            {currentPhotoIndex + 1} / {currentPhotos.length}
+          </div>
+
+          {/* Thumbnail Strip */}
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="flex gap-2 justify-center">
+              {currentPhotos.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToPhoto(index)}
+                  className={`flex-1 max-w-16 h-2 rounded-full transition-all duration-300 ${
+                    index === currentPhotoIndex 
+                      ? 'bg-white' 
+                      : 'bg-white/50 hover:bg-white/70'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Thumbnail Gallery */}
+        <div className="p-4 bg-blue-50/30 border-t border-blue-200/50">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {currentPhotos.map((photo, index) => (
+              <button
+                key={index}
+                onClick={() => goToPhoto(index)}
+                className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+                  index === currentPhotoIndex
+                    ? 'border-blue-500 shadow-lg scale-110'
+                    : 'border-blue-200 hover:border-blue-300 hover:scale-105'
+                }`}
+              >
+                <img
+                  src={photo}
+                  alt={`Thumbnail ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Info */}
+      <div className="p-6">
+        <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <div className="text-center p-4 bg-white rounded-xl border border-blue-200">
+            <MapPin className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+            <h4 className="font-bold text-blue-900">Location</h4>
+            <p className="text-blue-600 text-sm">Nairobi, Kenya</p>
+          </div>
+          <div className="text-center p-4 bg-white rounded-xl border border-blue-200">
+            <Phone className="w-8 h-8 text-green-500 mx-auto mb-2" />
+            <h4 className="font-bold text-blue-900">Contact</h4>
+            <p className="text-blue-600 text-sm">+254 720 846 532</p>
+          </div>
+          <div className="text-center p-4 bg-white rounded-xl border border-blue-200">
+            <Mail className="w-8 h-8 text-purple-500 mx-auto mb-2" />
+            <h4 className="font-bold text-blue-900">Email</h4>
+            <p className="text-blue-600 text-sm">info@faab.org</p>
+          </div>
+        </div>
+
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <Heart className="w-5 h-5 text-yellow-600 fill-current" />
+            <div>
+              <h4 className="font-bold text-yellow-800">How You Can Help</h4>
+              <p className="text-yellow-700 text-sm">
+                Your support makes these moments possible. Consider donating or volunteering today.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <section className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen py-12">
@@ -169,7 +322,39 @@ const CurrentActivity = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        {/* Mobile Navigation - Only visible on mobile */}
+        <div className="lg:hidden mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 p-6 shadow-lg">
+            <div className="space-y-3">
+              {Object.entries(sectionData).map(([key, data]) => {
+                const SectionIcon = data.icon;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => handleMobileSectionClick(key)}
+                    className="w-full text-left p-4 rounded-xl transition-all duration-300 bg-white/50 text-blue-800 hover:bg-blue-50 hover:shadow-md border border-blue-200/50"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-blue-100">
+                        <SectionIcon className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg">{data.title}</h3>
+                        <p className="text-blue-600/70 text-sm mt-1">
+                          {data.description.substring(0, 60)}...
+                        </p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-blue-400" />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Layout - Hidden on mobile */}
+        <div className="hidden lg:grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {/* Navigation Panel */}
           <div className="lg:col-span-1">
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 p-6 shadow-lg sticky top-6">
@@ -232,146 +417,64 @@ const CurrentActivity = () => {
 
           {/* Carousel Panel */}
           <div className="lg:col-span-2">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 shadow-xl overflow-hidden">
-              {/* Carousel Header */}
-              <div className="p-6 border-b border-blue-200/50 bg-gradient-to-r from-blue-50 to-purple-50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                      <IconComponent className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-blue-900">{currentSectionData.title}</h2>
-                      <p className="text-blue-600/80">{currentSectionData.description}</p>
-                    </div>
+            <CarouselContent />
+          </div>
+        </div>
+
+        {/* Mobile Modal */}
+        {mobileModalOpen && (
+          <div className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl w-full max-h-[90vh] overflow-y-auto relative">
+              {/* Close Button */}
+              <button
+                onClick={closeMobileModal}
+                className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300"
+              >
+                <X className="w-5 h-5 text-blue-700" />
+              </button>
+
+              {/* Modal Header */}
+              <div className="p-6 border-b border-blue-200/50 bg-gradient-to-r from-blue-50 to-purple-50 sticky top-0">
+                <div className="flex items-center gap-4 pr-10">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <IconComponent className="w-6 h-6 text-blue-600" />
                   </div>
-                  <button
-                    onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-                    className="w-10 h-10 bg-white rounded-lg border border-blue-200 flex items-center justify-center hover:bg-blue-50 transition-colors"
-                  >
-                    {isAutoPlaying ? (
-                      <Clock className="w-4 h-4 text-blue-600" />
-                    ) : (
-                      <Play className="w-4 h-4 text-blue-600" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Main Carousel */}
-              <div className="relative">
-                <div 
-                  className="relative aspect-video bg-gray-100 overflow-hidden"
-                  onTouchStart={handleTouchStart}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={handleTouchEnd}
-                >
-                  {/* Main Image */}
-                  <img
-                    src={currentPhotos[currentPhotoIndex]}
-                    alt={`${currentSectionData.title} - Image ${currentPhotoIndex + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-500"
-                  />
-
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10"></div>
-
-                  {/* Navigation Arrows */}
-                  <button
-                    onClick={prevPhoto}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 hover:scale-110 group"
-                  >
-                    <ChevronLeft className="w-6 h-6 text-blue-700 group-hover:text-blue-900" />
-                  </button>
-                  <button
-                    onClick={nextPhoto}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 hover:scale-110 group"
-                  >
-                    <ChevronRight className="w-6 h-6 text-blue-700 group-hover:text-blue-900" />
-                  </button>
-
-                  {/* Image Counter */}
-                  <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
-                    {currentPhotoIndex + 1} / {currentPhotos.length}
-                  </div>
-
-                  {/* Thumbnail Strip */}
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="flex gap-2 justify-center">
-                      {currentPhotos.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => goToPhoto(index)}
-                          className={`flex-1 max-w-16 h-2 rounded-full transition-all duration-300 ${
-                            index === currentPhotoIndex 
-                              ? 'bg-white' 
-                              : 'bg-white/50 hover:bg-white/70'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Thumbnail Gallery */}
-                <div className="p-4 bg-blue-50/30 border-t border-blue-200/50">
-                  <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                    {currentPhotos.map((photo, index) => (
-                      <button
-                        key={index}
-                        onClick={() => goToPhoto(index)}
-                        className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
-                          index === currentPhotoIndex
-                            ? 'border-blue-500 shadow-lg scale-110'
-                            : 'border-blue-200 hover:border-blue-300 hover:scale-105'
-                        }`}
-                      >
-                        <img
-                          src={photo}
-                          alt={`Thumbnail ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
+                  <div>
+                    <h2 className="text-2xl font-bold text-blue-900">{currentSectionData.title}</h2>
+                    <p className="text-blue-600/80">{currentSectionData.description}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Additional Info */}
-              <div className="p-6">
-                <div className="grid md:grid-cols-3 gap-4 mb-6">
-                  <div className="text-center p-4 bg-white rounded-xl border border-blue-200">
-                    <MapPin className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                    <h4 className="font-bold text-blue-900">Location</h4>
-                    <p className="text-blue-600 text-sm">Nairobi, Kenya</p>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-xl border border-blue-200">
-                    <Phone className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                    <h4 className="font-bold text-blue-900">Contact</h4>
-                    <p className="text-blue-600 text-sm">+254 720 846 532</p>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-xl border border-blue-200">
-                    <Mail className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                    <h4 className="font-bold text-blue-900">Email</h4>
-                    <p className="text-blue-600 text-sm">info@faab.org</p>
-                  </div>
-                </div>
-
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                  <div className="flex items-center gap-3">
-                    <Heart className="w-5 h-5 text-yellow-600 fill-current" />
-                    <div>
-                      <h4 className="font-bold text-yellow-800">How You Can Help</h4>
-                      <p className="text-yellow-700 text-sm">
-                        Your support makes these moments possible. Consider donating or volunteering today.
-                      </p>
+              {/* Stats Section */}
+              <div className="p-6 border-b border-blue-200/50">
+                <h4 className="font-bold text-blue-900 mb-3 text-lg">Quick Stats</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  {currentSectionData.stats.map((stat, index) => (
+                    <div key={index} className="text-center bg-blue-50 rounded-xl p-3">
+                      <div className="text-lg font-bold text-blue-900">{stat.value}</div>
+                      <div className="text-blue-700 text-xs">{stat.label}</div>
                     </div>
-                  </div>
+                  ))}
                 </div>
+              </div>
+
+              {/* Carousel Content */}
+              <div className="p-4">
+                <CarouselContent />
+              </div>
+
+              {/* CTA Button */}
+              <div className="p-6 border-t border-blue-200/50 bg-blue-50/30">
+                <button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-blue-500/25 transition-all duration-300 flex items-center justify-center gap-2 text-lg">
+                  <Heart className="w-5 h-5" />
+                  <span>Get Involved</span>
+                  <ExternalLink className="w-5 h-5" />
+                </button>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Custom Styles */}
