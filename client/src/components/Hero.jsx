@@ -1,16 +1,22 @@
 import { useState, useEffect, useRef } from "react";
-import { Heart, Users, Home, Gift, Clock, ArrowRight, Play, ChevronLeft, ChevronRight, Star, Calendar, Shield } from "lucide-react";
+import { Heart, Users, Home, Gift, Clock, ArrowRight, Play, ChevronLeft, ChevronRight, Star, Calendar, Shield, Menu, X } from "lucide-react";
 
 const ChildrensHomeHero = () => {
   const [currentFeature, setCurrentFeature] = useState(0);
   const [childrenHelped, setChildrenHelped] = useState(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showAllFeatures, setShowAllFeatures] = useState(false);
   const scrollRef = useRef(null);
   
   const features = [
     { icon: Heart, text: "Safe Loving Environment" },
     { icon: Shield, text: "Child Protection First" },
-    { icon: Users, text: "Family Reintegration" }
+    { icon: Users, text: "Family Reintegration" },
+    { icon: Gift, text: "Education Support" },
+    { icon: Home, text: "Shelter & Care" },
+    { icon: Calendar, text: "Daily Activities" }
   ];
 
   // Children's home photos (replace with actual foundation photos)
@@ -97,8 +103,10 @@ const ChildrensHomeHero = () => {
     setCurrentPhotoIndex((prev) => (prev - 1 + homePhotos.length) % homePhotos.length);
   };
 
+  const visibleFeatures = showAllFeatures ? features : features.slice(0, 3);
+
   return (
-    <section className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 text-blue-900 overflow-hidden">
+    <section className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 text-blue-900 overflow-hidden min-h-screen">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%233b82f6%22%20fill-opacity%3D%220.05%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
       
@@ -106,101 +114,134 @@ const ChildrensHomeHero = () => {
       <div className="absolute top-4 left-4 w-20 h-20 bg-blue-200/30 rounded-full blur-xl"></div>
       <div className="absolute bottom-8 right-8 w-24 h-24 bg-purple-200/40 rounded-full blur-xl"></div>
 
+      {/* Mobile Menu Button */}
+      <button 
+        className="lg:hidden fixed top-4 right-4 z-50 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-lg border border-blue-200 shadow-lg flex items-center justify-center"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+      >
+        {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </button>
+
       <div className="container mx-auto px-4 py-8 md:py-12 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-          {/* Content Section */}
-          <div className="lg:w-1/2 text-center lg:text-left">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-blue-500/10 backdrop-blur-sm border border-blue-500/20 rounded-full px-3 py-1.5 mb-4">
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium text-blue-700">Making a Difference Since 2025</span>
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+          {/* Content Section - Now on left for better visual flow */}
+          <div className="lg:w-1/2 text-center lg:text-left order-2 lg:order-1">
+            {/* FAAB Meaning Badge */}
+            <div className="inline-flex flex-col sm:flex-row items-center gap-2 bg-blue-500/10 backdrop-blur-sm border border-blue-500/20 rounded-2xl px-4 py-3 mb-6 max-w-md mx-auto lg:mx-0">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-bold text-blue-700">FAAB</span>
+              </div>
+              <span className="text-xs text-blue-600/80 text-center sm:text-left">
+                Faith, Action & Abundance in Blessing
+              </span>
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight font-serif">
-              FAAB
-              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Charity Organisation
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight font-serif">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                FAAB
               </span>
+              <span className="block text-blue-900 mt-2">Charity</span>
             </h1>
 
-            {/* Description */}
-            <p className="text-lg text-blue-800/80 mb-6 leading-relaxed max-w-2xl">
-              Providing <span className="font-semibold text-blue-700">safe shelter, education, and love</span> 
-              {" "}to vulnerable children. Every child deserves a chance to thrive and dream.
-            </p>
+            {/* Description with expandable on mobile */}
+            <div className="mb-6">
+              <p className={`text-lg text-blue-800/80 leading-relaxed max-w-2xl ${
+                !showFullDescription ? 'line-clamp-3' : ''
+              }`}>
+                Providing <span className="font-semibold text-blue-700">safe shelter, education, and love</span> 
+                {" "}to vulnerable children. Every child deserves a chance to thrive and dream. 
+                <span className="hidden md:inline"> We believe in transforming lives through faith, action, and abundant blessings.</span>
+              </p>
+              
+              {/* Mobile expand button */}
+              <button 
+                className="md:hidden text-blue-600 font-medium text-sm mt-2 flex items-center gap-1 mx-auto lg:mx-0"
+                onClick={() => setShowFullDescription(!showFullDescription)}
+              >
+                {showFullDescription ? 'Show less' : 'Read more'} 
+                <ChevronRight className={`w-3 h-3 transition-transform ${showFullDescription ? 'rotate-90' : ''}`} />
+              </button>
+            </div>
 
-            {/* Features Carousel */}
-            <div className="flex items-center gap-3 mb-6 justify-center lg:justify-start">
-              {features.map((feature, index) => {
-                const IconComponent = feature.icon;
-                return (
-                  <div
-                    key={index}
-                    className={`flex items-center gap-1.5 transition-all duration-500 ${
-                      currentFeature === index
-                        ? "opacity-100 scale-105"
-                        : "opacity-60 scale-95"
-                    }`}
-                  >
-                    <IconComponent className="w-4 h-4 text-blue-600" />
-                    <span className="text-xs font-medium whitespace-nowrap text-blue-700">
-                      {feature.text}
-                    </span>
-                  </div>
-                );
-              })}
+            {/* Features Grid - Collapsible on mobile */}
+            <div className="mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                {visibleFeatures.map((feature, index) => {
+                  const IconComponent = feature.icon;
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-blue-200/50 rounded-xl p-3 transition-all duration-300 hover:shadow-md hover:border-blue-300"
+                    >
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <IconComponent className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <span className="text-sm font-medium text-blue-800">
+                        {feature.text}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Show more/less toggle for mobile */}
+              {features.length > 3 && (
+                <button 
+                  className="lg:hidden text-blue-600 font-medium text-sm flex items-center gap-1 mx-auto"
+                  onClick={() => setShowAllFeatures(!showAllFeatures)}
+                >
+                  {showAllFeatures ? 'Show less features' : `Show ${features.length - 3} more features`}
+                  <ChevronRight className={`w-3 h-3 transition-transform ${showAllFeatures ? 'rotate-90' : ''}`} />
+                </button>
+              )}
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-6 justify-center lg:justify-start">
-              <button className="group relative bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2">
+            <div className="flex flex-col sm:flex-row gap-3 mb-8 justify-center lg:justify-start">
+              <button className="group relative bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2">
                 <Heart className="w-4 h-4" />
-                <span className="text-sm">Donate Now</span>
+                <span>Donate Now</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 blur-md transition-opacity -z-10"></div>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 blur-md transition-opacity -z-10"></div>
               </button>
 
-              <button className="group border border-blue-500/30 bg-white/50 backdrop-blur-sm text-blue-700 font-semibold py-3 px-6 rounded-lg hover:bg-blue-500/10 hover:border-blue-500/50 transition-all duration-300 flex items-center justify-center gap-2">
+              <button className="group border border-blue-500/30 bg-white/50 backdrop-blur-sm text-blue-700 font-semibold py-3 px-6 rounded-xl hover:bg-blue-500/10 hover:border-blue-500/50 transition-all duration-300 flex items-center justify-center gap-2">
                 <Users className="w-4 h-4" />
-                <span className="text-sm">Volunteer</span>
-              </button>
-
-              <button className="group border border-blue-500/30 bg-white/50 backdrop-blur-sm text-blue-700 font-semibold py-3 px-6 rounded-lg hover:bg-blue-500/10 hover:border-blue-500/50 transition-all duration-300 flex items-center justify-center gap-2">
-                <Play className="w-4 h-4" />
-                <span className="text-sm">Our Story</span>
+                <span>Volunteer</span>
               </button>
             </div>
 
             {/* Stats */}
-            <div className="flex flex-wrap gap-6 items-center justify-center lg:justify-start">
-              <div className="text-center">
-                <div className="text-xl font-bold text-blue-700">{childrenHelped}+</div>
-                <div className="text-blue-600 text-xs">Children Helped</div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-md mx-auto lg:mx-0">
+              <div className="text-center bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50">
+                <div className="text-2xl font-bold text-blue-700">{childrenHelped}+</div>
+                <div className="text-blue-600 text-sm">Children Helped</div>
               </div>
               
-              <div className="text-center">
-                <div className="text-xl font-bold text-blue-700">{stats.volunteers}</div>
-                <div className="text-blue-600 text-xs">Dedicated Volunteers</div>
+              <div className="text-center bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50">
+                <div className="text-2xl font-bold text-blue-700">{stats.volunteers}</div>
+                <div className="text-blue-600 text-sm">Volunteers</div>
               </div>
               
-              <div className="text-center">
-                <div className="text-xl font-bold text-blue-700">{stats.years}+</div>
-                <div className="text-blue-600 text-xs">Years of Service</div>
+              <div className="text-center bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50">
+                <div className="text-2xl font-bold text-blue-700">{stats.years}+</div>
+                <div className="text-blue-600 text-sm">Years</div>
               </div>
               
-              <div className="text-center">
-                <div className="text-xl font-bold text-blue-700">{stats.communities}</div>
-                <div className="text-blue-600 text-xs">Communities Served</div>
+              <div className="text-center bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50">
+                <div className="text-2xl font-bold text-blue-700">{stats.communities}</div>
+                <div className="text-blue-600 text-sm">Communities</div>
               </div>
             </div>
           </div>
 
-          {/* Visual Section with Photos */}
-          <div className="lg:w-1/2 flex justify-center relative mt-6 lg:mt-0">
-            <div className="relative">
+          {/* Visual Section - Now on right */}
+          <div className="lg:w-1/2 flex justify-center relative order-1 lg:order-2">
+            <div className="relative max-w-md">
               {/* Main Photo Display */}
-              <div className="relative w-72 h-72 md:w-96 md:h-96 bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 shadow-2xl overflow-hidden">
+              <div className="relative w-full aspect-square bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 shadow-2xl overflow-hidden">
                 <img 
                   src={homePhotos[currentPhotoIndex]} 
                   alt="Children's home activities"
@@ -213,45 +254,45 @@ const ChildrensHomeHero = () => {
                 {/* Navigation Arrows */}
                 <button 
                   onClick={prevPhoto}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 hover:scale-110"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 hover:scale-110"
                 >
-                  <ChevronLeft className="w-4 h-4 text-blue-700" />
+                  <ChevronLeft className="w-5 h-5 text-blue-700" />
                 </button>
                 <button 
                   onClick={nextPhoto}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 hover:scale-110"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 hover:scale-110"
                 >
-                  <ChevronRight className="w-4 h-4 text-blue-700" />
+                  <ChevronRight className="w-5 h-5 text-blue-700" />
                 </button>
 
                 {/* Program Info Overlay */}
-                <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+                <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-lg">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h3 className="font-bold text-blue-900 text-sm">{programs[currentPhotoIndex]?.name}</h3>
-                      <p className="text-blue-600 text-xs">{programs[currentPhotoIndex]?.description}</p>
+                      <h3 className="font-bold text-blue-900">{programs[currentPhotoIndex]?.name}</h3>
+                      <p className="text-blue-600 text-sm">{programs[currentPhotoIndex]?.description}</p>
                     </div>
                     <div className="flex gap-1">
-                      <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                      <span className="text-xs font-medium text-blue-700">Essential</span>
+                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                      <span className="text-sm font-medium text-blue-700">Essential</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Dots Indicator */}
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-1">
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2">
                   {homePhotos.map((_, index) => (
                     <div 
                       key={index}
                       className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        index === currentPhotoIndex ? 'bg-blue-500 w-4' : 'bg-blue-300'
+                        index === currentPhotoIndex ? 'bg-blue-500 w-6' : 'bg-blue-300'
                       }`}
                     />
                   ))}
                 </div>
               </div>
 
-              {/* Floating Program Cards */}
+              {/* Floating Elements */}
               <div className="absolute -top-4 -left-4 w-20 h-24 bg-white/90 backdrop-blur-sm rounded-xl border border-blue-200 shadow-lg p-2 transform rotate-6 animate-float">
                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mb-1 mx-auto">
                   <Gift className="w-4 h-4 text-blue-600" />
@@ -269,9 +310,9 @@ const ChildrensHomeHero = () => {
               </div>
 
               {/* Urgent Need Indicator */}
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
                 <Heart className="w-3 h-3 fill-current" />
-                <span className="text-xs font-medium">Urgent: School Supplies</span>
+                <span className="text-sm font-medium">Urgent: School Supplies</span>
               </div>
             </div>
           </div>
@@ -306,12 +347,39 @@ const ChildrensHomeHero = () => {
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-        <div className="w-5 h-8 border border-blue-400/30 rounded-full flex justify-center">
-          <div className="w-1 h-2 bg-blue-500/60 rounded-full mt-1 animate-bounce"></div>
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 bg-white/95 backdrop-blur-sm z-40 flex flex-col items-center justify-center p-4">
+          <button 
+            className="absolute top-4 right-4 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X className="w-5 h-5 text-blue-700" />
+          </button>
+          
+          <div className="text-center space-y-6">
+            <h3 className="text-2xl font-bold text-blue-900 mb-8">FAAB Charity</h3>
+            
+            <button className="block w-full py-3 px-6 bg-blue-500 text-white rounded-lg font-semibold">
+              Donate Now
+            </button>
+            
+            <button className="block w-full py-3 px-6 border border-blue-500 text-blue-700 rounded-lg font-semibold">
+              Volunteer
+            </button>
+            
+            <button className="block w-full py-3 px-6 border border-blue-500 text-blue-700 rounded-lg font-semibold">
+              Our Story
+            </button>
+            
+            <div className="pt-6 border-t border-blue-200">
+              <p className="text-blue-600 text-sm">
+                Faith, Action & Abundance in Blessing
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Add CSS for animations */}
       <style jsx>{`
@@ -335,6 +403,12 @@ const ChildrensHomeHero = () => {
         }
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
+        }
+        .line-clamp-3 {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
       `}</style>
     </section>
