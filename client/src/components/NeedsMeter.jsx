@@ -17,7 +17,7 @@ const UrgentNeedsMeter = () => {
     },
     {
       id: 2,
-      item: "Winter Blankets",
+      item: "Shelter",
       icon: <Heart className="w-5 h-5" />,
       target: 100,
       current: 45,

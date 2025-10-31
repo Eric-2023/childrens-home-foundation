@@ -1,3 +1,4 @@
+import CurrentActivity from "./components/CurrentActivity"
 import DonationImpactCalculator from "./components/DonationCalculator"
 import Footer from "./components/Footer"
 import FoundationPrograms from "./components/FoundationPrograms"
@@ -16,13 +17,8 @@ function App() {
     <>
     <Header/>
     <ChildrensHomeHero/>
-    <ChildSponsorshipGallery/>
-    <FoundationPrograms/>
+    <CurrentActivity />
     <UrgentNeedsMeter/>
-    <VisitScheduling/>
-    <VirtualTourGallery/>
-    <DonationImpactCalculator/>
-    <DonationTicker/>
     <Footer/>
     </>
   )
