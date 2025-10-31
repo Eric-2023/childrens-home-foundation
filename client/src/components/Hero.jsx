@@ -21,11 +21,11 @@ const ChildrensHomeHero = () => {
 
   // Children's home photos (replace with actual foundation photos)
   const homePhotos = [
-    "https://images.unsplash.com/photo-1516627145497-ae69578cf5c3?w=400&h=300&fit=crop&crop=center",
-    "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&h=300&fit=crop&crop=center",
-    "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400&h=300&fit=crop&crop=center",
-    "https://images.unsplash.com/photo-1507919909716-c8262b71e9ae?w=400&h=300&fit=crop&crop=center",
-    "https://images.unsplash.com/photo-1485546246426-74dc88ded4d2?w=400&h=300&fit=crop&crop=center"
+    "/getmorehome/photo1.jpeg",
+    "/getmorehome/photo2.jpeg",
+    "/getmorehome/photo3.jpeg",
+    "/getmorehome/photo1.jpeg",
+    "/getmorehome/photo4.jpeg"
   ];
 
   const programs = [
